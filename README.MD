@@ -22,8 +22,6 @@ Este é um sistema desenvolvido em Python que facilita a entrega do cardápio do
 
 <br>
 
-# Requisitos
-
 # Modulos
 
 ## Scraping
