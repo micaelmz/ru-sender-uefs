@@ -1,37 +1,20 @@
+#TODO Rodar a cada 1h procurando por membros com a tag novo, entao enviar a mensagem de boas vindas e a do meu instagram, entao remover a tag de membro novo
 from twilio.rest import Client
 import ibm_db
 import ibm_db_dbi
-import json
 
-bot_sender_number = "13138008608"
+# KEYS AND TOKENS, HACKERS PLEASE DON'T STEAL MY STUFF
+account_sid = 'ACb6f8299c4f7f5346cb82156b9757b0d9'
+auth_token = 'ba290548eaf75db8e618d4c48dae3103'
+dsn_driver = "{IBM DB2 ODBC DRIVER}"
+dsn_database = "BLUDB"
+dsn_hostname = "9938aec0-8105-433e-8bf9-0fbb7e483086.c1ogj3sd0tgtu0lqde00.databases.appdomain.cloud"            # e.g.: "dashdb-txn-sbox-yp-dal09-04.services.dal.bluemix.net"
+dsn_port = "32459"
+dsn_protocol = "TCPIP"
+dsn_uid = "mhp73098"
+dsn_pwd = "3L2bV4fA5aIrWk0Q"
+dsn_security = "SSL"
 
-with open('client_secret.json') as f:
-    data = json.load(f)
-    db_data = data['db']
-
-    dsn_driver = db_data['dsn_driver']
-    dsn_database = db_data['dsn_database']
-    dsn_hostname = db_data['dsn_hostname']
-    dsn_port = db_data['dsn_port']
-    dsn_protocol = db_data['dsn_protocol']
-    dsn_uid = db_data['dsn_uid']
-    dsn_pwd = db_data['dsn_pwd']
-    dsn_security = db_data['dsn_security']
-
-    email_data = data['email']
-    sender_email = email_data['login']
-    password_email = email_data['password']
-    receiver_email = email_data['receiver_email']
-
-    api_data = data['api']
-    account_sid = api_data['account_sid']
-    auth_token = api_data['auth_token']
-
-    sql_names = db_data['sql_names'] # no sql injection here
-    breakfast_table = sql_names['breakfast']
-    lunch_table = sql_names['lunch']
-    dinner_table = sql_names['dinner']
-    users_table = sql_names['users']
 
 # ====================== PEGA A LISTA DE USUARIOS ======================
 dsn = (
@@ -51,7 +34,7 @@ except:
 
 
 def get_new_user_numbers():
-    query = f"SELECT name, number FROM {users_table} WHERE NEW_USER = TRUE"
+    query = "SELECT name, number FROM CRUEFS_USERS WHERE NEW_USER = 1"
     stmt  = ibm_db.exec_immediate(conn, query)
     resultado = []
     row = ibm_db.fetch_both(stmt)
@@ -62,7 +45,7 @@ def get_new_user_numbers():
 
 def update_user_stats(user_number):
     query = f"""
-            UPDATE {users_table}
+            UPDATE CRUEFS_USERS
             SET NEW_USER = FALSE
             WHERE NUMBER = '{user_number}'
             """
@@ -79,14 +62,16 @@ client = Client(account_sid, auth_token)
 for user in new_user_numbers:
     welcome_msg = f"Bem vindo {user['name']}!\nVocê passará a receber o cardápio da UEFS diariamente."
     message = client.messages.create(
-          from_=f'whatsapp:+{bot_sender_number}',
+          from_='whatsapp:+13138008608',
           to=f'whatsapp:+{user["number"]}',
           body=welcome_msg
     )
     message = client.messages.create(
-          from_=f'whatsapp:+{bot_sender_number}',
+          from_='whatsapp:+13138008608',
           to=f'whatsapp:+{user["number"]}',
           body=warning_msg
     )
 
     update_user_stats(user["number"])
+
+print(f"{len(new_user_numbers)} novos usuarios.")

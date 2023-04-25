@@ -35,7 +35,7 @@ with open('client_secret.json') as f:
     account_sid = api_data['account_sid']
     auth_token = api_data['auth_token']
 
-    sql_names = db_data['sql_names'] # no sql injection here
+    sql_names = data['sql_names'] # no sql injection here
     breakfast_table = sql_names['breakfast']
     lunch_table = sql_names['lunch']
     dinner_table = sql_names['dinner']
@@ -48,6 +48,23 @@ day_name_today = day_names[weekday]
 def is_weekend():
     return weekday >= 5
 
+
+def menu_updated_yet():
+    df = pd.read_csv('last_update.csv')
+    if len(df) == 0:
+        df.loc[0, 'filename'] = 'placeholder'
+        df.loc[0, 'datetime'] = "01-01-1990 00:00"
+        df.to_csv('last_update.csv', index=False)
+        return False
+    last_updated_date_str = df['datetime'][0]
+    # check if the "datetime" in the format strftime("%d-%m-%Y %H:%M") is the weekyear as same as today
+    last_updated_date = datetime.datetime.strptime(last_updated_date_str, "%d-%m-%Y %H:%M")
+    last_upated_week = last_updated_date.strftime("%U")
+    today_week = datetime_now.strftime("%U")
+    if last_upated_week == today_week:
+        return True
+    else:
+        return False
 
 # ====================== PEGA A LISTA DE USUARIOS ======================
 dsn = (
@@ -77,7 +94,6 @@ def get_user_numbers():
     while row:
         resultado.append(row[0])
         row = ibm_db.fetch_both(stmt)
-    ibm_db.close(conn)
     return resultado
 
 def get_tables(table_name):
@@ -94,8 +110,15 @@ df_breakfast = get_tables(breakfast_table)
 df_lunch = get_tables(lunch_table)
 df_dinner = get_tables(dinner_table)
 
+if menu_updated_yet():
+    msg_day = day_name_today
+    msg_date = datetime_now.strftime("%d/%m")
+else:
+    msg_day = day_name_today+" DA SEMANA PASSADA"
+    msg_date = "propaae não atualizou"
+
 #old_menu_msg = f"""*📜 Cardápio do RU {day_name_today} ({datetime_now.strftime("%d/%m")}).*\n\n*🕗 Café da manhã*\n☕ _Bebida:_ {df_breakfast[day_name_today]['BEBIDA']}\n🍖 _Proteína:_ {df_breakfast[day_name_today]['PROTEINA']}\n🥔 _Raíz ou farináceo:_ {df_breakfast[day_name_today]['RAIZ']}\n🍎 _Fruta:_ {df_breakfast[day_name_today]['FRUTA']}\n🥦 _Ovolactovegetariano:_ {df_breakfast[day_name_today]['VEGETARIANO']}\n\n*🕛 Almoço*\n🍽 _Acompanhamento 1:_ {df_lunch[day_name_today]['ACOMPANHAMENTO_1']}\n🥣 _Acompanhamento 2:_ {df_lunch[day_name_today]['ACOMPANHAMENTO_2']}\n🍜 _Guarnição:_ {df_lunch[day_name_today]['GUARNIÇÃO']}\n🥗 _Salada Cozida:_ {df_lunch[day_name_today]['SALADA_COZIDA']}\n🥒 _Salada Crua:_ {df_lunch[day_name_today]['SALADA_CRUA']}\n🍖 _Proteína:_ {df_lunch[day_name_today]['PROTEINA']}\n🥓 _Opção:_ {df_lunch[day_name_today]['OPÇÃO']}\n🍎 _Fruta:_ {df_lunch[day_name_today]['FRUTA']}\n🧃 _Suco:_ {df_lunch[day_name_today]['SUCO']}\n🥦 _Ovolactovegetariano:_ {df_lunch[day_name_today]['VEGETARIANO']}\n\n*🕘 Janta*\n☕ _Bebida:_ {df_dinner[day_name_today]['BEBIDA']}\n🍖 _Proteína:_ {df_dinner[day_name_today]['PROTEINA']}\n🥔 _Raíz ou farináceo:_ {df_dinner[day_name_today]['RAIZ']}\n🍵 _Sopa:_ {df_dinner[day_name_today]['SOPA']}\n🥦 _Ovolactovegetariano:_ {df_dinner[day_name_today]['PROTEINA_VEGETARIANO']+" + "+df_dinner[day_name_today]['VEGETARIANO']}"""
-menu_msg = f"""*📜 Cardápio do RU {day_name_today} ({datetime_now.strftime("%d/%m")}).*\n\n*🕗 Café da manhã*\n☕ _Bebida:_ {df_breakfast[day_name_today]['BEBIDA'].title()}\n🍖 _Proteína:_ {df_breakfast[day_name_today]['PROTEINA'].title()}\n🥔 _Raíz ou farináceo:_ {df_breakfast[day_name_today]['RAIZ'].title()}\n🍎 _Fruta:_ {df_breakfast[day_name_today]['FRUTA'].title()}\n🥦 _Ovolactovegetariano:_ {df_breakfast[day_name_today]['VEGETARIANO'].title()}\n\n*🕛 Almoço*\n🍽 _Acompanhamento 1:_ {df_lunch[day_name_today]['ACOMPANHAMENTO_1'].title()}\n🥣 _Acompanhamento 2:_ {df_lunch[day_name_today]['ACOMPANHAMENTO_2'].title()}\n🍜 _Guarnição:_ {df_lunch[day_name_today]['GUARNIÇÃO'].title()}\n🥗 _Salada Cozida:_ {df_lunch[day_name_today]['SALADA_COZIDA'].title()}\n🥒 _Salada Crua:_ {df_lunch[day_name_today]['SALADA_CRUA'].title()}\n🍖 _Proteína:_ {df_lunch[day_name_today]['PROTEINA'].title()}\n🥓 _Opção:_ {df_lunch[day_name_today]['OPÇÃO'].title()}\n🍎 _Fruta:_ {df_lunch[day_name_today]['FRUTA'].title()}\n🧃 _Suco:_ {df_lunch[day_name_today]['SUCO'].title()}\n🥦 _Ovolactovegetariano:_ {df_lunch[day_name_today]['VEGETARIANO'].title()}\n\n*🕘 Janta*\n☕ _Bebida:_ {df_dinner[day_name_today]['BEBIDA'].title()}\n🍖 _Proteína:_ {df_dinner[day_name_today]['PROTEINA'].title()}\n🥔 _Raíz ou farináceo:_ {df_dinner[day_name_today]['RAIZ'].title()}\n🍵 _Sopa:_ {df_dinner[day_name_today]['SOPA'].title()}\n🥦 _Ovolactovegetariano:_ {df_dinner[day_name_today]['PROTEINA_VEGETARIANO'].title()+" + "+df_dinner[day_name_today]['VEGETARIANO'].title()}"""
+menu_msg = f"""*📜 Cardápio do RU {msg_day} ({msg_date}).*\n\n*🕗 Café da manhã*\n☕ _Bebida:_ {df_breakfast[day_name_today]['BEBIDA'].title()}\n🍖 _Proteína:_ {df_breakfast[day_name_today]['PROTEINA'].title()}\n🥔 _Raíz ou farináceo:_ {df_breakfast[day_name_today]['RAIZ'].title()}\n🍎 _Fruta:_ {df_breakfast[day_name_today]['FRUTA'].title()}\n🥦 _Ovolactovegetariano:_ {df_breakfast[day_name_today]['VEGETARIANO'].title()}\n\n*🕛 Almoço*\n🍽 _Acompanhamento 1:_ {df_lunch[day_name_today]['ACOMPANHAMENTO_1'].title()}\n🥣 _Acompanhamento 2:_ {df_lunch[day_name_today]['ACOMPANHAMENTO_2'].title()}\n🍜 _Guarnição:_ {df_lunch[day_name_today]['GUARNIÇÃO'].title()}\n🥗 _Salada Cozida:_ {df_lunch[day_name_today]['SALADA_COZIDA'].title()}\n🥒 _Salada Crua:_ {df_lunch[day_name_today]['SALADA_CRUA'].title()}\n🍖 _Proteína:_ {df_lunch[day_name_today]['PROTEINA'].title()}\n🥓 _Opção:_ {df_lunch[day_name_today]['OPÇÃO'].title()}\n🍎 _Fruta:_ {df_lunch[day_name_today]['FRUTA'].title()}\n🧃 _Suco:_ {df_lunch[day_name_today]['SUCO'].title()}\n🥦 _Ovolactovegetariano:_ {df_lunch[day_name_today]['VEGETARIANO'].title()}\n\n*🕘 Janta*\n☕ _Bebida:_ {df_dinner[day_name_today]['BEBIDA'].title()}\n🍖 _Proteína:_ {df_dinner[day_name_today]['PROTEINA'].title()}\n🥔 _Raíz ou farináceo:_ {df_dinner[day_name_today]['RAIZ'].title()}\n🍵 _Sopa:_ {df_dinner[day_name_today]['SOPA'].title()}\n🥦 _Ovolactovegetariano:_ {df_dinner[day_name_today]['PROTEINA_VEGETARIANO'].title()+" + "+df_dinner[day_name_today]['VEGETARIANO'].title()}"""
 
 
 client = Client(account_sid, auth_token)
@@ -106,3 +129,11 @@ for number in user_numbers:
           to=f'whatsapp:+{number}',
           body=menu_msg
     )
+
+# message = client.messages.create(
+#       from_=f'whatsapp:+{bot_sender_number}',
+#       to=f'whatsapp:+557592709130',
+#       body=menu_msg
+# )
+
+ibm_db.close(conn)
