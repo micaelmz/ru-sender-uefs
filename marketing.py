@@ -2,18 +2,38 @@
 from twilio.rest import Client
 import ibm_db
 import ibm_db_dbi
+import json
 
 # KEYS AND TOKENS, HACKERS PLEASE DON'T STEAL MY STUFF
-account_sid = 'ACb6f8299c4f7f5346cb82156b9757b0d9'
-auth_token = 'ba290548eaf75db8e618d4c48dae3103'
-dsn_driver = "{IBM DB2 ODBC DRIVER}"
-dsn_database = "BLUDB"
-dsn_hostname = "9938aec0-8105-433e-8bf9-0fbb7e483086.c1ogj3sd0tgtu0lqde00.databases.appdomain.cloud"            # e.g.: "dashdb-txn-sbox-yp-dal09-04.services.dal.bluemix.net"
-dsn_port = "32459"
-dsn_protocol = "TCPIP"
-dsn_uid = "mhp73098"
-dsn_pwd = "3L2bV4fA5aIrWk0Q"
-dsn_security = "SSL"
+with open('client_secret.json') as f:
+    data = json.load(f)
+    db_data = data['db']
+
+    dsn_driver = db_data['dsn_driver']
+    dsn_database = db_data['dsn_database']
+    dsn_hostname = db_data['dsn_hostname']
+    dsn_port = db_data['dsn_port']
+    dsn_protocol = db_data['dsn_protocol']
+    dsn_uid = db_data['dsn_uid']
+    dsn_pwd = db_data['dsn_pwd']
+    dsn_security = db_data['dsn_security']
+
+    email_data = data['email']
+    sender_email = email_data['login']
+    password_email = email_data['password']
+    receiver_email = email_data['receiver_email']
+
+    sql_names = data['sql_names'] # no sql injection here
+    project_code_name = sql_names['project_code_name']
+    breakfast_table = sql_names['breakfast']
+    lunch_table = sql_names['lunch']
+    dinner_table = sql_names['dinner']
+    users_table = sql_names['users']
+    tables_nickname = sql_names['tables_nickname']
+
+    api_data = data['api']
+    account_sid = api_data['account_sid']
+    auth_token = api_data['auth_token']
 
 
 # ====================== PEGA A LISTA DE USUARIOS ======================
