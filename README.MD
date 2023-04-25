@@ -26,7 +26,7 @@ Este é um sistema desenvolvido em Python que facilita a entrega do cardápio do
 
 ## Scraping
 
-Um bot de extração de dados, que realiza scraping no [site da Prograd UEFS](http://propaae.uefs.br/modules/conteudo/conteudo.php?conteudo=15) todas as segundas-feiras em busca do link do PDF do cardápio semanal, então faz download do mesmo nos arquivos do servidor, após isso, as informações são extraídas em formato DataFrame Pandas usando Tabula-py, então o DataFrame é tratado para os dados serem armazenados em um servidor SQL do IBM DB2.
+Um bot de extração de dados, que realiza scraping no [site da propaae UEFS](http://propaae.uefs.br/modules/conteudo/conteudo.php?conteudo=15) todas as segundas-feiras em busca do link do PDF do cardápio semanal, então faz download do mesmo nos arquivos do servidor, após isso, as informações são extraídas em formato DataFrame Pandas usando Tabula-py, então o DataFrame é tratado para os dados serem armazenados em um servidor SQL do IBM DB2.
 
 ## WhatsApp Sender
 
