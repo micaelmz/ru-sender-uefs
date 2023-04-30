@@ -9,6 +9,7 @@ from utils import dt_now
 class Scraping:
     def __init__(self):
         self.endpoint = "http://www.propaae.uefs.br/modules/conteudo/conteudo.php?conteudo=15"
+        self.column_names = ['SEGUNDA', 'TERÇA', 'QUARTA', 'QUINTA', 'SEXTA', 'SABADO', 'DOMINGO']
 
     def retrieve_html(self) -> BeautifulSoup:
         r = requests.get(self.endpoint)
@@ -26,19 +27,17 @@ class Scraping:
             f.write(response.content)
 
     def extract_pdf(self) -> pd.DataFrame:
-        df = tabula.read_pdf('cardapio.pdf', pages='all', multiple_tables=True)
-        df = pd.concat(df)
-        df = df.reset_index(drop=True)
-        df = df.replace(np.nan, '', regex=True)
+        df = tabula.read_pdf("cardapio.pdf", pages=1, output_format='dataframe')[0]
+        df = df.applymap(lambda x: str(x).upper())
         return df
 
 teste = Scraping()
-print(1)
-soup = teste.retrieve_html()
-print(2)
-pdf_link = teste.find_pdf_link(soup)
-print(3)
-teste.download_pdf(pdf_link)
-print(4)
+# print(1)
+# soup = teste.retrieve_html()
+# print(2)
+# pdf_link = teste.find_pdf_link(soup)
+# print(3)
+# teste.download_pdf(pdf_link)
+# print(4)
 df = teste.extract_pdf()
 print(df)
