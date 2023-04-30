@@ -6,6 +6,7 @@ import ibm_db
 import pandas as pd
 import ibm_db_dbi
 import json
+import time
 
 
 # ====================== Carregando variaveis ======================
@@ -100,7 +101,6 @@ def get_tables(table_name):
     pconn = ibm_db_dbi.Connection(conn)
     sql = f"SELECT * FROM {table_name}"
     df = pd.read_sql(sql, pconn)
-    df = df.drop('ID', axis=1)
     df = df.set_index('NOME')
     return df
 
@@ -110,18 +110,25 @@ df_breakfast = get_tables(breakfast_table)
 df_lunch = get_tables(lunch_table)
 df_dinner = get_tables(dinner_table)
 
-if menu_updated_yet():
-    msg_day = day_name_today
-    msg_date = datetime_now.strftime("%d/%m")
-else:
-    msg_day = day_name_today+" DA SEMANA PASSADA"
-    msg_date = "propaae não atualizou"
+# if menu_updated_yet():
+#     msg_day = day_name_today
+#     msg_date = datetime_now.strftime("%d/%m")
+# else:
+#     msg_day = day_name_today+" DA SEMANA PASSADA"
+#     msg_date = "propaae não atualizou"
+
+msg_day = day_name_today
+msg_date = datetime_now.strftime("%d/%m")
 
 #old_menu_msg = f"""*📜 Cardápio do RU {day_name_today} ({datetime_now.strftime("%d/%m")}).*\n\n*🕗 Café da manhã*\n☕ _Bebida:_ {df_breakfast[day_name_today]['BEBIDA']}\n🍖 _Proteína:_ {df_breakfast[day_name_today]['PROTEINA']}\n🥔 _Raíz ou farináceo:_ {df_breakfast[day_name_today]['RAIZ']}\n🍎 _Fruta:_ {df_breakfast[day_name_today]['FRUTA']}\n🥦 _Ovolactovegetariano:_ {df_breakfast[day_name_today]['VEGETARIANO']}\n\n*🕛 Almoço*\n🍽 _Acompanhamento 1:_ {df_lunch[day_name_today]['ACOMPANHAMENTO_1']}\n🥣 _Acompanhamento 2:_ {df_lunch[day_name_today]['ACOMPANHAMENTO_2']}\n🍜 _Guarnição:_ {df_lunch[day_name_today]['GUARNIÇÃO']}\n🥗 _Salada Cozida:_ {df_lunch[day_name_today]['SALADA_COZIDA']}\n🥒 _Salada Crua:_ {df_lunch[day_name_today]['SALADA_CRUA']}\n🍖 _Proteína:_ {df_lunch[day_name_today]['PROTEINA']}\n🥓 _Opção:_ {df_lunch[day_name_today]['OPÇÃO']}\n🍎 _Fruta:_ {df_lunch[day_name_today]['FRUTA']}\n🧃 _Suco:_ {df_lunch[day_name_today]['SUCO']}\n🥦 _Ovolactovegetariano:_ {df_lunch[day_name_today]['VEGETARIANO']}\n\n*🕘 Janta*\n☕ _Bebida:_ {df_dinner[day_name_today]['BEBIDA']}\n🍖 _Proteína:_ {df_dinner[day_name_today]['PROTEINA']}\n🥔 _Raíz ou farináceo:_ {df_dinner[day_name_today]['RAIZ']}\n🍵 _Sopa:_ {df_dinner[day_name_today]['SOPA']}\n🥦 _Ovolactovegetariano:_ {df_dinner[day_name_today]['PROTEINA_VEGETARIANO']+" + "+df_dinner[day_name_today]['VEGETARIANO']}"""
 menu_msg = f"""*📜 Cardápio do RU {msg_day} ({msg_date}).*\n\n*🕗 Café da manhã*\n☕ _Bebida:_ {df_breakfast[day_name_today]['BEBIDA'].title()}\n🍖 _Proteína:_ {df_breakfast[day_name_today]['PROTEINA'].title()}\n🥔 _Raíz ou farináceo:_ {df_breakfast[day_name_today]['RAIZ'].title()}\n🍎 _Fruta:_ {df_breakfast[day_name_today]['FRUTA'].title()}\n🥦 _Ovolactovegetariano:_ {df_breakfast[day_name_today]['VEGETARIANO'].title()}\n\n*🕛 Almoço*\n🍽 _Acompanhamento 1:_ {df_lunch[day_name_today]['ACOMPANHAMENTO_1'].title()}\n🥣 _Acompanhamento 2:_ {df_lunch[day_name_today]['ACOMPANHAMENTO_2'].title()}\n🍜 _Guarnição:_ {df_lunch[day_name_today]['GUARNIÇÃO'].title()}\n🥗 _Salada Cozida:_ {df_lunch[day_name_today]['SALADA_COZIDA'].title()}\n🥒 _Salada Crua:_ {df_lunch[day_name_today]['SALADA_CRUA'].title()}\n🍖 _Proteína:_ {df_lunch[day_name_today]['PROTEINA'].title()}\n🥓 _Opção:_ {df_lunch[day_name_today]['OPÇÃO'].title()}\n🍎 _Fruta:_ {df_lunch[day_name_today]['FRUTA'].title()}\n🧃 _Suco:_ {df_lunch[day_name_today]['SUCO'].title()}\n🥦 _Ovolactovegetariano:_ {df_lunch[day_name_today]['VEGETARIANO'].title()}\n\n*🕘 Janta*\n☕ _Bebida:_ {df_dinner[day_name_today]['BEBIDA'].title()}\n🍖 _Proteína:_ {df_dinner[day_name_today]['PROTEINA'].title()}\n🥔 _Raíz ou farináceo:_ {df_dinner[day_name_today]['RAIZ'].title()}\n🍵 _Sopa:_ {df_dinner[day_name_today]['SOPA'].title()}\n🥦 _Ovolactovegetariano:_ {df_dinner[day_name_today]['PROTEINA_VEGETARIANO'].title()+" + "+df_dinner[day_name_today]['VEGETARIANO'].title()}"""
 
 
+
 client = Client(account_sid, auth_token)
+
+errors = 0
+sucess = 0
 
 for number in user_numbers:
     message = client.messages.create(
@@ -129,11 +136,19 @@ for number in user_numbers:
           to=f'whatsapp:+{number}',
           body=menu_msg
     )
+    time.sleep(0.1)
+    if str(message.status).lower() in ['undelivered', 'failed', 'cancelled', 'rejected', 'blocked', 'invalid']:
+        errors += 1
+    else:
+        sucess += 1
+print(f"Dos {len(user_numbers)} usuarios, foram enviados {sucess} mensagens com sucesso e {errors} falharam!")
+
 
 # message = client.messages.create(
-#       from_=f'whatsapp:+{bot_sender_number}',
-#       to=f'whatsapp:+557592709130',
-#       body=menu_msg
-# )
+#       from_=f'+{bot_sender_number}',
+#       to=f'+557592709130',
+#       body="Olá pessoal, "
+#       )
+# print(message.status)
 
 ibm_db.close(conn)

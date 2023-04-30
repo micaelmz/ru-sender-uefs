@@ -86,7 +86,7 @@ def menu_updated_yet():
         return False
 
 
-if today_date.weekday() != 0 or menu_updated_yet():
+if today_date.weekday() != 0 and menu_updated_yet():
     print("O menu já foi atualizado essa semana!")
     exit(0)
 

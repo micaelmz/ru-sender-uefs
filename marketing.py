@@ -3,6 +3,7 @@ from twilio.rest import Client
 import ibm_db
 import ibm_db_dbi
 import json
+import time
 
 # KEYS AND TOKENS, HACKERS PLEASE DON'T STEAL MY STUFF
 with open('client_secret.json') as f:
@@ -63,6 +64,18 @@ def get_new_user_numbers():
         row = ibm_db.fetch_both(stmt)
     return resultado
 
+
+def get_users_numbers():
+    query = f"SELECT number FROM {users_table}"
+    stmt  = ibm_db.exec_immediate(conn, query)
+    resultado = []
+    row = ibm_db.fetch_both(stmt)
+    while row:
+        resultado.append(row[0])
+        row = ibm_db.fetch_both(stmt)
+    return resultado
+
+
 def update_user_stats(user_number):
     query = f"""
             UPDATE CRUEFS_USERS
@@ -76,22 +89,32 @@ def update_user_stats(user_number):
 
 warning_msg = "Este projeto é independente e não possui vínculo oficial com a UEFS. É um projeto de aluno para aluno. Para mais informações, visite a página do projeto em meu site e siga-me no Instagram 😉."
 
+aviso_restricao = "Peço desculpas pela inatividade do nosso bot. Descobri que o envio de mensagens em massa no WhatsApp é limitado pelas políticas da plataforma e, devido ao grande número de usuários, o bot ficou restrito. Mas, se você me enviar uma mensagem primeiro, posso responder normalmente, enquanto eu trabalho em uma solução para voltar a ser automático.\n\nPara solicitar o cardápio, basta enviar *cardápio de hoje* a qualquer momento. E para receber o cardápio da refeição atual, tente enviar *cardápio de agora*. _Esta segunda opção pode, ou não, já estar disponível, então por favor, tente para verificar._\n\nAgradeço pela sua compreensão e colaboração."
+
 new_user_numbers = get_new_user_numbers()
 client = Client(account_sid, auth_token)
 
-for user in new_user_numbers:
-    welcome_msg = f"Bem vindo {user['name']}!\nVocê passará a receber o cardápio da UEFS diariamente."
-    message = client.messages.create(
-          from_='whatsapp:+13138008608',
-          to=f'whatsapp:+{user["number"]}',
-          body=welcome_msg
-    )
-    message = client.messages.create(
-          from_='whatsapp:+13138008608',
-          to=f'whatsapp:+{user["number"]}',
-          body=warning_msg
-    )
+user_numbers = get_users_numbers()
 
-    update_user_stats(user["number"])
+errors = 0
+sucess = 0
 
-print(f"{len(new_user_numbers)} novos usuarios.")
+for number in user_numbers:
+    message = client.messages.create(
+          from_=f'whatsapp:+13138008608',
+          to=f'whatsapp:+{number}',
+          body=aviso_restricao
+    )
+    time.sleep(0.1)
+    if str(message.status).lower() in ['undelivered', 'failed', 'cancelled', 'rejected', 'blocked', 'invalid']:
+        errors += 1
+    else:
+        sucess += 1
+print(f"Dos {len(user_numbers)} usuarios, foram enviados {sucess} mensagens com sucesso e {errors} falharam!")
+
+
+# message = client.messages.create(
+#           from_='whatsapp:+13138008608',
+#           to=f'whatsapp:+557592709130',
+#           body=aviso_restricao
+#     )
