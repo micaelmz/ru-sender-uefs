@@ -1,4 +1,4 @@
-# 📲  Enviador de Cardápio do Restaurante Universitário
+# 📲  Enviador Automático do Cardápio do Restaurante Universitário
 Este é um sistema desenvolvido em Python que facilita a entrega do cardápio do RU para estudantes da UEFS. O sistema é composto por três bots que trabalham juntos para fornecer o cardápio atualizado para os usuários. Os bots realizam tarefas como: gerenciar requisições enviadas ao WhatsApp; cadastrar novos usuários; buscar, extrair, limpar e salvar no banco de dados o cardápio semanal; enviar o cardápio diariamente para os assinantes. O sistema utiliza tecnologias como a API do WhatsApp, Flask e Pandas para realizar as tarefas necessárias. Além de possuir um sistema de notificação via e-mail que envia logs de cada procedimento ou erro para o desenvolvedor.
 
 <br>
