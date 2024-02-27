@@ -5,7 +5,7 @@ Este é um sistema desenvolvido em Python que facilita a entrega do cardápio do
 
 
 <div align="center">
-<img src="https://micaelmuniz.com/assets/opcao5.png"  width="100%"/>
+<img src="https://github.com/micaelmz/micaelmz/blob/main/images/cruefs-project-bg.png"  width="100%"/>
 </div>
 
 <br>
